@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: summary
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/summary?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: root
+    hikari:
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      maximum-pool-size: 20
+      idle-timeout: 600000
+      connection-test-query: SELECT 1
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+#        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    open-in-view: true
