@@ -20,3 +20,8 @@ spring:
       naming:
         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
     open-in-view: true
+logging:
+  path: /Users/luzhi/tmp/logs
+  level:
+    root: info
+    cn.enigma.project: debug

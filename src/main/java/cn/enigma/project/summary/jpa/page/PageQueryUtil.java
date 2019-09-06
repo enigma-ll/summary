@@ -1,8 +1,5 @@
-package cn.enigma.project.summary.jpa.util;
+package cn.enigma.project.summary.jpa.page;
 
-import cn.enigma.project.summary.jpa.PageQueryRepository;
-import cn.enigma.project.summary.jpa.PageQuery;
-import cn.enigma.project.summary.jpa.PageResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

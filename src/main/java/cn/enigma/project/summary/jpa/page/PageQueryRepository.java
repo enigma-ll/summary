@@ -1,4 +1,4 @@
-package cn.enigma.project.summary.jpa;
+package cn.enigma.project.summary.jpa.page;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

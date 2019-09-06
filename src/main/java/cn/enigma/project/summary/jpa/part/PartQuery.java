@@ -1,8 +1,5 @@
 package cn.enigma.project.summary.jpa.part;
 
-import cn.enigma.project.summary.test.entity.TestEntity;
-import cn.enigma.project.summary.test.service.TestOneBO;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
