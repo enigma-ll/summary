@@ -14,33 +14,53 @@ import java.util.Optional;
  */
 public class TimeUtil {
 
+    /**
+     * 通用时间格式
+     */
     public static final DateTimeFormatter COMMON_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static ZoneOffset systemDefaultZoneId;
 
     /**
-     * long类型时间转成通用格式(yyyy-MM-dd HH:mm:ss)
+     * long转LocalDateTime
      *
-     * @param dateTime 时间
-     * @return str
+     * @param dateTime utc毫秒值
+     * @return LocalDateTime
      */
-    public static String formatterLongDateTime(Long dateTime) {
-        return COMMON_FORMATTER.format(convertDateTime(dateTime));
-    }
-
     public static LocalDateTime convertDateTime(Long dateTime) {
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(dateTime), getSystemDefaultZoneId());
     }
 
+    /**
+     * LocalDateTime转long
+     *
+     * @param dateTime 时间
+     * @return utc毫秒值
+     */
+    public static Long convertDateTime(LocalDateTime dateTime) {
+        return dateTime.toInstant(getSystemDefaultZoneId()).toEpochMilli();
+    }
+
+    /**
+     * 获取系统默认时区
+     *
+     * @return 时区ZoneOffset
+     */
     public static ZoneOffset getSystemDefaultZoneId() {
         if (systemDefaultZoneId == null) {
-//            systemDefaultZoneId = Clock.systemDefaultZone().getZone().getRules().getOffset(Instant.now());
+            // systemDefaultZoneId = Clock.systemDefaultZone().getZone().getRules().getOffset(Instant.now());
             systemDefaultZoneId = ZoneOffset.from(ZonedDateTime.now());
         }
         return systemDefaultZoneId;
     }
 
-    public static Optional convertTimeDefaultFormatter(String time) {
+    /**
+     * 将yyyy-MM-dd HH:mm:ss时间转换成LocalDateTime
+     *
+     * @param time 时间
+     * @return LocalDateTime
+     */
+    public static Optional<LocalDateTime> convertTimeWithDefaultFormatter(String time) {
         if (StringUtils.isEmpty(time)) {
             return Optional.empty();
         }
@@ -53,20 +73,9 @@ public class TimeUtil {
         }
         try {
             LocalDateTime dateTime = LocalDateTime.parse(time, COMMON_FORMATTER);
-            return Optional.of(dateTime.toInstant(getSystemDefaultZoneId()).toEpochMilli());
+            return Optional.of(dateTime);
         } catch (Exception e) {
             return Optional.empty();
         }
-    }
-
-    public static void main(String[] args) {
-        long start = Instant.now().toEpochMilli();
-        ZoneId zoneOffset = getSystemDefaultZoneId();
-        long end = Instant.now().toEpochMilli();
-        System.out.println(Instant.now().toEpochMilli() - start);
-        start = end;
-        zoneOffset = getSystemDefaultZoneId();
-        end = Instant.now().toEpochMilli();
-        System.out.println(end - start);
     }
 }

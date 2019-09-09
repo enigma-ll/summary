@@ -1,5 +1,7 @@
 package cn.enigma.project.summary.common;
 
+import java.util.Optional;
+
 /**
  * @author luzh
  * Create: 2019-05-27 16:44
@@ -13,5 +15,13 @@ public class Globals {
             e = e.getCause();
         }
         return e;
+    }
+
+    public static Optional<Integer> convertString2Integer(String number) {
+        try {
+            return Optional.of(new Integer(number));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 }

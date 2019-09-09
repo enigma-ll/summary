@@ -19,7 +19,7 @@ import java.lang.reflect.Modifier;
 public class SystemInit {
 
     @PostConstruct
-    public void dataInitialing() throws Exception {
+    public void dataInitialing() {
         log.debug("{} dataInitialing...", getClass().getName());
         Class<? extends SystemInit> clazz = getClass();
         Method[] methods = clazz.getMethods();

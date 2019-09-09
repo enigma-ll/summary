@@ -1,9 +1,12 @@
 package cn.enigma.project.summary.test.entity;
 
+import cn.enigma.project.summary.jpa.entity.BaseEntity;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
 /**
  * @author luzh
@@ -12,10 +15,14 @@ import java.io.Serializable;
  * Description:
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Entity
-@Table(name = "TEST_INFO")
-public class TestEntity implements Serializable {
-    private static final long serialVersionUID = 428896576368292316L;
+@Table(name = "test_info")
+@DynamicInsert
+@DynamicUpdate
+public class TestEntity extends BaseEntity {
+
+    private static final long serialVersionUID = -451754529963459226L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
