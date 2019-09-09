@@ -2,8 +2,6 @@ package cn.enigma.project.summary.rsa.pojo;
 
 import lombok.Data;
 
-import java.security.PublicKey;
-
 /**
  * @author luzh
  * Create: 2019-07-12 11:46

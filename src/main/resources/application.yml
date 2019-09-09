@@ -32,3 +32,15 @@ logging:
   level:
     root: info
     cn.enigma.project: debug
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["health", "info", "prometheus"]
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      enabled: false
+    prometheus:
+      enabled: true

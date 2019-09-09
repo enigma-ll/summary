@@ -50,6 +50,8 @@ dependencies {
     compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.8.0'
     // hutool工具类
     compile 'cn.hutool:hutool-crypto:4.6.3'
+    // prometheus监控依赖
+    compile 'io.micrometer:micrometer-registry-prometheus:latest.release'
 }
 
 dependencyManagement {
