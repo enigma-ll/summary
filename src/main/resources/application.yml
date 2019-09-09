@@ -1,3 +1,10 @@
+server:
+  port: 9911
+  undertow:
+    accesslog:
+      dir: ${logging.path}/${spring.application.name}/${server.port}
+      enabled: true
+      prefix: access.
 spring:
   application:
     name: summary
@@ -21,7 +28,7 @@ spring:
         physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
     open-in-view: true
 logging:
-  path: /Users/luzhi/tmp/logs
+  path: /Users/luzhihao/tmp/logs
   level:
     root: info
     cn.enigma.project: debug

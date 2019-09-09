@@ -1,5 +1,6 @@
 package cn.enigma.project.summary.test.controller;
 
+import cn.enigma.project.summary.common.controller.trace.annotation.HttpTrace;
 import cn.enigma.project.summary.test.service.TestOneBO;
 import cn.enigma.project.summary.test.service.TestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class TestController {
         this.testService = testService;
     }
 
+    @HttpTrace
     @GetMapping("one")
     public List<TestOneBO> listOne() {
         return testService.listOne();

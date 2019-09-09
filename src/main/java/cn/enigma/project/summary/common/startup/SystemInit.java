@@ -44,8 +44,4 @@ public class SystemInit {
                 && !method.isVarArgs()  // 无参数
                 && !Modifier.isAbstract(method.getModifiers());  // 非抽象方法
     }
-
-    public void initSystem() {
-        log.info("by luzh-> system init");
-    }
 }
