@@ -1,9 +1,10 @@
 package cn.enigma.project.summary.test;
 
-import cn.enigma.project.summary.common.startup.SystemInit;
-import cn.enigma.project.summary.common.util.SnowflakeIdWorker;
+import cn.enigma.project.common.startup.SystemInit;
+import cn.enigma.project.common.util.SnowflakeIdWorker;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
  * Modified By:
  * Description:
  */
+@Slf4j
 @Component
 public class TestEntityInit extends SystemInit {
 
@@ -25,11 +27,12 @@ public class TestEntityInit extends SystemInit {
     }
 
     public void initTestData() {
-//        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 500000; i++) {
             Long id = snowflakeIdWorker.nextId();
             TestEntity testEntity = new TestEntity(id.toString(), "two-" + id, "three-" + id,
                     "four-" + id, "five-" + id, "six-" + id);
             testRepository.save(testEntity);
-//        }
+        }
+        log.info("init finish");
     }
 }

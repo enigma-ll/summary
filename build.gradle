@@ -17,6 +17,9 @@ configurations {
 }
 
 repositories {
+    maven {
+        url "file://Users/luzhihao/Develop/maven-repository"
+    }
     mavenCentral()
 }
 
@@ -52,6 +55,8 @@ dependencies {
     compile 'cn.hutool:hutool-crypto:4.6.3'
     // prometheus监控依赖
     compile 'io.micrometer:micrometer-registry-prometheus:latest.release'
+    compile group: 'cn.enigma.project', name: 'common', version: '0.0.1-SNAPSHOT'
+    compile group: 'cn.enigma.project', name: 'common-jpa', version: '0.0.1-SNAPSHOT'
 }
 
 dependencyManagement {

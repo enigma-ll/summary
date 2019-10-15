@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.test.controller;
 
-import cn.enigma.project.summary.common.controller.trace.annotation.HttpTrace;
+import cn.enigma.project.common.controller.trace.annotation.HttpTrace;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import cn.enigma.project.summary.test.service.TestOneBO;
 import cn.enigma.project.summary.test.service.TestService;
@@ -31,8 +31,26 @@ public class TestController {
 
     @HttpTrace
     @GetMapping("one")
-    public List<TestOneBO> listOne() {
-        return testService.listOne();
+    public Integer listOne() {
+        return testService.listOne().size();
+    }
+
+    @HttpTrace
+    @GetMapping("all")
+    public Integer listAll() {
+        return testService.listAll().size();
+    }
+
+    @HttpTrace
+    @GetMapping("one/q")
+    public List<TestOneBO> queryOne(Integer id) {
+        return testService.findOne(id);
+    }
+
+    @HttpTrace
+    @GetMapping("all/q")
+    public TestEntity queryEntity(Integer id) {
+        return testService.findEntity(id);
     }
 
     @HttpTrace
@@ -40,4 +58,5 @@ public class TestController {
     public TestEntity update(@RequestParam Integer id) {
         return testService.update(id);
     }
+
 }

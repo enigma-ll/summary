@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.test.entity;
 
-import cn.enigma.project.summary.jpa.entity.BaseEntity;
+import cn.enigma.project.jpa.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.DynamicInsert;
@@ -57,5 +57,12 @@ public class TestEntity extends BaseEntity {
         this.columnFour = columnFour;
         this.columnFive = columnFive;
         this.columnSix = columnSix;
+    }
+
+    @Override
+    public String toString() {
+        return "TestEntity{" +
+                "id=" + id +
+                '}';
     }
 }

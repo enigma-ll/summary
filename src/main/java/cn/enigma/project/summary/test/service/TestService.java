@@ -1,9 +1,10 @@
 package cn.enigma.project.summary.test.service;
 
-import cn.enigma.project.summary.jpa.part.PartQuery;
+import cn.enigma.project.jpa.part.PartQuery;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
@@ -34,7 +35,20 @@ public class TestService {
 
 
     public List<TestOneBO> listOne() {
-        return partQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, entityManager.getCriteriaBuilder().and());
+        return partQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, (root, query, criteriaBuilder) -> entityManager.getCriteriaBuilder().and());
+    }
+
+    public List<TestEntity> listAll() {
+        return (List<TestEntity>) testRepository.findAll();
+    }
+
+    public List<TestOneBO> findOne(Integer id) {
+        Specification<TestEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
+        return partQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, specification);
+    }
+
+    public TestEntity findEntity(Integer id) {
+        return testRepository.findById(id).orElse(null);
     }
 
     public TestEntity update(Integer id) {

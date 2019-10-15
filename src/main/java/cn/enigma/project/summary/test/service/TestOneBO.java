@@ -1,6 +1,5 @@
 package cn.enigma.project.summary.test.service;
 
-import cn.enigma.project.summary.jpa.part.PartAnnotation;
 import lombok.Data;
 
 /**
@@ -10,10 +9,8 @@ import lombok.Data;
  * Description:
  */
 @Data
-//@EqualsAndHashCode(callSuper = false)
 public class TestOneBO {
 
-    @PartAnnotation(name = "columnOne")
     private String columnOne;
 
     private String columnSix;
