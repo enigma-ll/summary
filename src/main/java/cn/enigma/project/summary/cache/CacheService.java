@@ -6,7 +6,6 @@ import cn.enigma.project.summary.cache.pojo.CacheResult;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Created with Intellij IDEA.
@@ -18,9 +17,7 @@ import java.util.function.Supplier;
  */
 public interface CacheService<T> {
 
-    CacheResult<T> compute(String key, Callable<T> callable, Function<Future<T>, CacheResult<T>> futureGet);
-
     CacheResult<T> compute(String key, Callable<T> callable, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler);
 
-    void removeCache(String key, Supplier function);
+    void removeCache(String key, Runnable runnable);
 }

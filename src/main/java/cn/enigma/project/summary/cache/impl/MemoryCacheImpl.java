@@ -1,17 +1,18 @@
 package cn.enigma.project.summary.cache.impl;
 
+import cn.enigma.project.summary.cache.CacheService;
 import cn.enigma.project.summary.cache.function.FutureFunction;
 import cn.enigma.project.summary.cache.pojo.CacheResult;
-import cn.enigma.project.summary.cache.CacheService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-public class CacheServiceImpl<T> implements CacheService<T> {
+@Slf4j
+public class MemoryCacheImpl<T> implements CacheService<T> {
 
     private ConcurrentHashMap<String, Future<T>> cache = new ConcurrentHashMap<>(1000);
 
@@ -29,27 +30,23 @@ public class CacheServiceImpl<T> implements CacheService<T> {
     }
 
     @Override
-    public CacheResult<T> compute(String key, Callable<T> callable, Function<Future<T>, CacheResult<T>> futureResult) {
-        Future<T> future = getFuture(key, callable);
-        return futureResult.apply(future);
-    }
-
-    @Override
-    public CacheResult<T> compute(String key, Callable<T> callable, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler) {
+    public CacheResult<T> compute(String key, Callable<T> callable, FutureFunction<Future<T>, T> resultFunction,
+                                  Function<Exception, Exception> exceptionHandler) {
         Future<T> future = getFuture(key, callable);
         CacheResult<T> cacheResult = new CacheResult<>();
         try {
-            T t = resultFunction.apply(future);
-            cacheResult.setResult(t);
+            cacheResult.setResult(resultFunction.apply(future));
         } catch (Exception e) {
-            Exception exception = exceptionHandler.apply(e);
-            cacheResult.setException(exception);
+            cacheResult.setException(exceptionHandler.apply(e));
         }
         return cacheResult;
     }
 
     @Override
-    public void removeCache(String key, Supplier function) {
-
+    public void removeCache(String key, Runnable runnable) {
+        cache.remove(key);
+        log.info("remove {}", key);
+        log.info("has key {}", cache.contains(key));
+        runnable.run();
     }
 }
