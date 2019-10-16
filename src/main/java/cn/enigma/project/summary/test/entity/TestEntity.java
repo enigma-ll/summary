@@ -29,6 +29,9 @@ public class TestEntity extends BaseEntity {
     private Integer id;
 
     @Column
+    private String name;
+
+    @Column
     private String columnOne;
 
     @Column

@@ -1,9 +1,11 @@
 package cn.enigma.project.summary.test.controller;
 
 import cn.enigma.project.common.controller.trace.annotation.HttpTrace;
+import cn.enigma.project.common.exception.GlobalException;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import cn.enigma.project.summary.test.service.TestOneBO;
 import cn.enigma.project.summary.test.service.TestService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +20,7 @@ import java.util.List;
  * Modified By:
  * Description:
  */
+@Slf4j
 @RestController
 @RequestMapping("test")
 public class TestController {
@@ -59,4 +62,11 @@ public class TestController {
         return testService.update(id);
     }
 
+    @HttpTrace
+    @GetMapping("add")
+    public TestEntity add(String name) throws GlobalException {
+        System.out.println(name);
+        log.info("add testEntity {}", name);
+        return testService.add(name);
+    }
 }
