@@ -11,13 +11,12 @@ import cn.enigma.project.summary.test.entity.TestEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.concurrent.Future;
 
 @Service
 public class CacheTest {
 
-    private CacheService<Optional<TestEntity>> nameCache = new CacheServiceImpl<>();
+    private CacheService<TestEntity> nameCache = new CacheServiceImpl<>();
     private CacheService<TestEntity> entityCache = new CacheServiceImpl<>();
 
     private final TestRepository testRepository;
@@ -28,13 +27,11 @@ public class CacheTest {
     }
 
     public TestEntity add(String name) throws Exception {
-        CacheResult<Optional<TestEntity>> nameCacheResult = nameCache.compute(name, () -> testRepository.findByName(name), Future::get, (exception) -> new GlobalException(Globals.getOriginException(exception).getMessage()));
-        try {
-            if (nameCacheResult.result().isPresent()) {
-                return nameCacheResult.result().get();
-            }
-        } catch (Exception e) {
-            throw new GlobalException(Globals.getOriginException(e).getMessage());
+        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, () -> testRepository.findByName(name).orElse(null), Future::get, (exception) -> new GlobalException(Globals.getOriginException(exception).getMessage()));
+        if (nameCacheResult.hasResult()) {
+            return nameCacheResult.result();
+        } else if (nameCacheResult.hasException()) {
+            throw nameCacheResult.throwException();
         }
         return entityCache.compute(name, () -> save(name), Future::get, (exception) -> new GlobalException("添加失败")).result();
     }

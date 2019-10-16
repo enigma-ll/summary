@@ -9,7 +9,7 @@ public class CacheResult<T> {
     private T result;
     private Exception exception;
 
-    private boolean hasException() {
+    public boolean hasException() {
         return null != this.exception;
     }
 
@@ -17,6 +17,17 @@ public class CacheResult<T> {
         if (hasException()) {
             throw this.exception;
         }
+        if (null == this.result) {
+            throw new NullPointerException(null);
+        }
         return this.result;
+    }
+
+    public Exception throwException() throws Exception {
+        throw this.exception;
+    }
+
+    public boolean hasResult() {
+        return null != this.result;
     }
 }
