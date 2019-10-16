@@ -1,8 +1,8 @@
 package cn.enigma.project.summary.test.controller;
 
 import cn.enigma.project.common.controller.trace.annotation.HttpTrace;
-import cn.enigma.project.common.exception.GlobalException;
 import cn.enigma.project.summary.test.entity.TestEntity;
+import cn.enigma.project.summary.test.service.CacheTest;
 import cn.enigma.project.summary.test.service.TestOneBO;
 import cn.enigma.project.summary.test.service.TestService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +26,12 @@ import java.util.List;
 public class TestController {
 
     private final TestService testService;
+    private final CacheTest cacheTest;
 
     @Autowired
-    public TestController(TestService testService) {
+    public TestController(TestService testService, CacheTest cacheTest) {
         this.testService = testService;
+        this.cacheTest = cacheTest;
     }
 
     @HttpTrace
@@ -64,9 +66,9 @@ public class TestController {
 
     @HttpTrace
     @GetMapping("add")
-    public TestEntity add(String name) throws GlobalException {
+    public TestEntity add(String name) throws Exception {
         System.out.println(name);
         log.info("add testEntity {}", name);
-        return testService.add(name);
+        return cacheTest.add(name);
     }
 }
