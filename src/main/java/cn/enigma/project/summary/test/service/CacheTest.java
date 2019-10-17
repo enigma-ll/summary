@@ -3,8 +3,8 @@ package cn.enigma.project.summary.test.service;
 import cn.enigma.project.common.Globals;
 import cn.enigma.project.common.exception.GlobalException;
 import cn.enigma.project.common.util.SnowflakeIdWorker;
-import cn.enigma.project.summary.cache.CacheService;
-import cn.enigma.project.summary.cache.impl.MemoryCacheImpl;
+import cn.enigma.project.summary.cache.FutureCache;
+import cn.enigma.project.summary.cache.impl.DefaultFutureCache;
 import cn.enigma.project.summary.cache.pojo.CacheResult;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
@@ -19,8 +19,8 @@ import java.util.function.Function;
 @Service
 public class CacheTest {
 
-    private CacheService<TestEntity> nameCache = new MemoryCacheImpl<>(0L);
-    private CacheService<TestEntity> entityCache = new MemoryCacheImpl<>(0L);
+    private FutureCache<TestEntity> nameCache = new DefaultFutureCache<>(0L);
+    private FutureCache<TestEntity> entityCache = new DefaultFutureCache<>(0L);
 
     private final Function<Exception, Exception> exceptionConverter = (exception) -> new GlobalException(Globals.getOriginException(exception).getMessage());
 
@@ -37,7 +37,8 @@ public class CacheTest {
             return nameCacheResult.result();
         }
         nameCacheResult.throwException();
-        return entityCache.compute(name, taskComplete(() -> save(name)), Future::get, (exception) -> new GlobalException("添加失败"), 1000L, () -> nameCache.removeCache(name, () -> {})).result();
+        return entityCache.compute(name, taskComplete(() -> save(name)), Future::get, (exception) -> new GlobalException("添加失败"), 1000L, () -> nameCache.removeCache(name, () -> {
+        })).result();
     }
 
     private <T> FutureTask<T> taskComplete(Callable<T> callable) {

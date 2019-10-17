@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.cache.impl;
 
-import cn.enigma.project.summary.cache.CacheService;
+import cn.enigma.project.summary.cache.FutureCache;
 import cn.enigma.project.summary.cache.function.FutureFunction;
 import cn.enigma.project.summary.cache.pojo.CacheResult;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.util.concurrent.*;
 import java.util.function.Function;
 
 @Slf4j
-public class MemoryCacheImpl<T> implements CacheService<T> {
+public class DefaultFutureCache<T> implements FutureCache<T> {
 
     private static final long EXPIRE_UNLIMITED = 0L;
 
@@ -19,7 +19,7 @@ public class MemoryCacheImpl<T> implements CacheService<T> {
     /**
      * @param expireTime 缓存失效时间（单位ms） 0为永久有效
      */
-    public MemoryCacheImpl(long expireTime) {
+    public DefaultFutureCache(long expireTime) {
         this.expireTime = expireTime;
     }
 

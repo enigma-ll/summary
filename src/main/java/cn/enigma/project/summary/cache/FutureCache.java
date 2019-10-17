@@ -15,13 +15,13 @@ import java.util.function.Function;
  * Modified By:
  * Description: 定义一个通用缓存接口
  */
-public interface CacheService<T> {
+public interface FutureCache<T> {
 
     /**
      * 将某个获取数据的执行任务缓存起来（过期时间默认为构造方法里面的时间，单位为ms）
      *
      * @param key              任务key
-     * @param dataTask             获取数据FutureTask
+     * @param dataTask         获取数据FutureTask
      * @param resultFunction   获取结果task方法（自定义使用Future.get()还是Future.get(long timeout, TimeUnit unit)）
      * @param exceptionHandler 任务执行异常转换
      * @return 任务结果
@@ -32,7 +32,7 @@ public interface CacheService<T> {
      * 将某个获取数据的执行任务缓存起来（过期时间默认为构造方法里面的时间，单位为ms）
      *
      * @param key              任务key
-     * @param dataTask             获取数据FutureTask
+     * @param dataTask         获取数据FutureTask
      * @param resultFunction   获取结果task方法（自定义使用Future.get()还是Future.get(long timeout, TimeUnit unit)）
      * @param exceptionHandler 任务执行异常转换
      * @param expire           定义任务缓存过期时间，0为永不过期
@@ -44,7 +44,7 @@ public interface CacheService<T> {
      * 将某个获取数据的执行任务缓存起来（过期时间默认为构造方法里面的时间，单位为ms）
      *
      * @param key              任务key
-     * @param dataTask             获取数据FutureTask
+     * @param dataTask         获取数据FutureTask
      * @param resultFunction   获取结果task方法（自定义使用Future.get()还是Future.get(long timeout, TimeUnit unit)）
      * @param exceptionHandler 任务执行异常转换
      * @param expire           定义任务缓存过期时间，0为永不过期
