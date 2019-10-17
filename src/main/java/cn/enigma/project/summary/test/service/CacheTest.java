@@ -19,8 +19,7 @@ import java.util.function.Function;
 @Service
 public class CacheTest {
 
-    private FutureCache<TestEntity> nameCache = new DefaultFutureCache<>(0L);
-    private FutureCache<TestEntity> entityCache = new DefaultFutureCache<>(0L);
+    private FutureCache<TestEntity> nameCache = new DefaultFutureCache<>();
 
     private final Function<Exception, Exception> exceptionConverter = (exception) -> new GlobalException(Globals.getOriginException(exception).getMessage());
 
@@ -32,13 +31,12 @@ public class CacheTest {
     }
 
     public TestEntity add(String name) throws Exception {
-        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, taskComplete(() -> testRepository.findByName(name).orElse(null)), Future::get, exceptionConverter, 1000L);
+        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, taskComplete(() -> testRepository.findByName(name).orElse(null)), false, Future::get, exceptionConverter, 100L);
         if (nameCacheResult.hasResult()) {
             return nameCacheResult.result();
         }
         nameCacheResult.throwException();
-        return entityCache.compute(name, taskComplete(() -> save(name)), Future::get, (exception) -> new GlobalException("添加失败"), 1000L, () -> nameCache.removeCache(name, () -> {
-        })).result();
+        return nameCache.compute(name, taskComplete(() -> save(name)), true, Future::get, (exception) -> new GlobalException("添加失败"), 1000L).result();
     }
 
     private <T> FutureTask<T> taskComplete(Callable<T> callable) {

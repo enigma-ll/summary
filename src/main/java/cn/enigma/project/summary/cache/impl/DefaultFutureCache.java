@@ -14,15 +14,6 @@ public class DefaultFutureCache<T> implements FutureCache<T> {
 
     private static final long EXPIRE_UNLIMITED = 0L;
 
-    private long expireTime;
-
-    /**
-     * @param expireTime 缓存失效时间（单位ms） 0为永久有效
-     */
-    public DefaultFutureCache(long expireTime) {
-        this.expireTime = expireTime;
-    }
-
     private boolean runExpireTask(long expire) {
         return expire > EXPIRE_UNLIMITED;
     }
@@ -32,45 +23,45 @@ public class DefaultFutureCache<T> implements FutureCache<T> {
     // 定时器线程池，用于清除过期缓存
     private final static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-    private Future<T> getFuture(String key, FutureTask<T> dataTask, long expire) {
-        Cache<T> cache = taskCache.get(key);
+
+    private Future<T> getFuture(String key, FutureTask<T> dataTask, long expire, boolean coverTask) {
+        Cache<T> cache;
+        if (coverTask) {
+            cache = new Cache<>(dataTask);
+            taskCache.put(key, cache);
+            dataTask.run();
+            setExpire(key, cache, expire);
+            return cache.getMainTask();
+        }
+        cache = taskCache.get(key);
         if (cache == null) {
             cache = new Cache<>(dataTask);
             Cache<T> putIfAbsent = taskCache.putIfAbsent(key, cache);
             if (null == putIfAbsent) {
                 dataTask.run();
-                if (runExpireTask(expire)) {
-                    Future expireTask = executor.schedule(() -> taskCache.remove(key), expire, TimeUnit.MILLISECONDS);
-                    cache.setExpireTask(expireTask);
-                }
+                setExpire(key, cache, expire);
             }
         }
         return cache.getMainTask();
     }
 
-    @Override
-    public CacheResult<T> compute(String key, FutureTask<T> dataTask, FutureFunction<Future<T>, T> resultFunction,
-                                  Function<Exception, Exception> exceptionHandler) {
-        return compute(key, dataTask, resultFunction, exceptionHandler, expireTime);
+    private void setExpire(String key, Cache<T> cache, long expire) {
+        if (runExpireTask(expire)) {
+            Future expireTask = executor.schedule(() -> removeCache(key, () -> {}), expire, TimeUnit.MILLISECONDS);
+            cache.setExpireTask(expireTask);
+        }
     }
 
     @Override
-    public CacheResult<T> compute(String key, FutureTask<T> dataTask, FutureFunction<Future<T>, T> resultFunction,
+    public CacheResult<T> compute(String key, FutureTask<T> dataTask, boolean coverTask, FutureFunction<Future<T>, T> resultFunction,
                                   Function<Exception, Exception> exceptionHandler, long expire) {
-        Future<T> future = getFuture(key, dataTask, expire);
+        Future<T> future = getFuture(key, dataTask, expire, coverTask);
         CacheResult<T> cacheResult = new CacheResult<>();
         try {
             cacheResult.setResult(resultFunction.apply(future));
         } catch (Exception e) {
             cacheResult.setException(exceptionHandler.apply(e));
         }
-        return cacheResult;
-    }
-
-    @Override
-    public CacheResult<T> compute(String key, FutureTask<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire, Runnable afterRun) {
-        CacheResult<T> cacheResult = compute(key, dataTask, resultFunction, exceptionHandler, expire);
-        new Thread(afterRun).start();
         return cacheResult;
     }
 

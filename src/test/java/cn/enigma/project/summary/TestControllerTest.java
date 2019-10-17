@@ -40,7 +40,7 @@ public class TestControllerTest {
                 }
                 TestEntity testEntity = null;
                 try {
-                    testEntity = testService.add("123");
+//                    testEntity = testService.add("123");
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
