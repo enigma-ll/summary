@@ -9,7 +9,7 @@ public class CacheResult<T> {
     private T result;
     private Exception exception;
 
-    public boolean hasException() {
+    private boolean hasException() {
         return null != this.exception;
     }
 
@@ -23,8 +23,10 @@ public class CacheResult<T> {
         return this.result;
     }
 
-    public Exception throwException() throws Exception {
-        throw this.exception;
+    public void throwException() throws Exception {
+        if (hasException()) {
+            throw this.exception;
+        }
     }
 
     public boolean hasResult() {

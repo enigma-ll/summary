@@ -67,7 +67,6 @@ public class TestController {
     @HttpTrace
     @GetMapping("add")
     public TestEntity add(String name) throws Exception {
-        System.out.println(name);
         log.info("add testEntity {}", name);
         return cacheTest.add(name);
     }

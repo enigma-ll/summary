@@ -1,8 +1,6 @@
 package cn.enigma.project.summary.test.service;
 
 import cn.enigma.project.jpa.part.PartQuery;
-import cn.enigma.project.summary.cache.CacheService;
-import cn.enigma.project.summary.cache.impl.MemoryCacheImpl;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +12,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
 /**
  * @author luzh
@@ -29,11 +24,6 @@ import java.util.concurrent.Future;
 public class TestService {
 
     private final PartQuery<TestEntity> partQuery = new PartQuery<>();
-
-    private ConcurrentHashMap<String, Future<Optional<TestEntity>>> taskMap = new ConcurrentHashMap<>(100);
-    private ConcurrentHashMap<String, Future<TestEntity>> entityMap = new ConcurrentHashMap<>(100);
-    private CacheService nameCache = new MemoryCacheImpl<>();
-    private CacheService entityCache = new MemoryCacheImpl<>();
 
     @PersistenceContext
     private EntityManager entityManager;

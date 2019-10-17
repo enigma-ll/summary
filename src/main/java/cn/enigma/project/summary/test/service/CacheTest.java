@@ -11,14 +11,16 @@ import cn.enigma.project.summary.test.entity.TestEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.function.Function;
 
 @Service
 public class CacheTest {
 
-    private CacheService<TestEntity> nameCache = new MemoryCacheImpl<>();
-    private CacheService<TestEntity> entityCache = new MemoryCacheImpl<>();
+    private CacheService<TestEntity> nameCache = new MemoryCacheImpl<>(0L);
+    private CacheService<TestEntity> entityCache = new MemoryCacheImpl<>(0L);
 
     private final Function<Exception, Exception> exceptionConverter = (exception) -> new GlobalException(Globals.getOriginException(exception).getMessage());
 
@@ -30,14 +32,16 @@ public class CacheTest {
     }
 
     public TestEntity add(String name) throws Exception {
-        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, () -> testRepository.findByName(name).orElse(null), Future::get, exceptionConverter);
+        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, taskComplete(() -> testRepository.findByName(name).orElse(null)), Future::get, exceptionConverter, 1000L);
         if (nameCacheResult.hasResult()) {
             return nameCacheResult.result();
-        } else if (nameCacheResult.hasException()) {
-            throw nameCacheResult.throwException();
         }
-        nameCache.removeCache(name, () -> {});
-        return entityCache.compute(name, () -> save(name), Future::get, (exception) -> new GlobalException("添加失败")).result();
+        nameCacheResult.throwException();
+        return entityCache.compute(name, taskComplete(() -> save(name)), Future::get, (exception) -> new GlobalException("添加失败"), 1000L, () -> nameCache.removeCache(name, () -> {})).result();
+    }
+
+    private <T> FutureTask<T> taskComplete(Callable<T> callable) {
+        return new FutureTask<>(callable);
     }
 
     private TestEntity save(String name) {
