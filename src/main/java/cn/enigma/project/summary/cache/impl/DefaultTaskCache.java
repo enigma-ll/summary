@@ -1,6 +1,5 @@
 package cn.enigma.project.summary.cache.impl;
 
-import cn.enigma.project.summary.cache.Defines;
 import cn.enigma.project.summary.cache.Task;
 import cn.enigma.project.summary.cache.TaskCache;
 import cn.enigma.project.summary.cache.function.FutureFunction;
@@ -57,24 +56,26 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
         try {
             cache = taskCache.get(key);
             if (cache == null) {
+                // 如果缓存中没有内容，则直接添加到缓存中
                 cache = new Cache<>(dataTask);
                 Cache<T> putIfAbsent = taskCache.putIfAbsent(key, cache);
                 if (null == putIfAbsent) {
-                    System.out.println("put cache");
+                    // 添加之后，开启任务执行，设置过期清理task
                     dataTask.run();
                     setExpire(key, cache, expire);
                 }
             } else {
-                if (coverTask(cache.mainTask, dataTask)) {
+                // 如果已存在任务，判断是否覆盖新的任务
+                if (coverTask(cache.dataTask, dataTask)) {
                     cache = new Cache<>(dataTask);
-                    System.out.println("put cache");
                     taskCache.put(key, cache);
                     dataTask.run();
                     setExpire(key, cache, expire);
-                    return cache.getMainTask();
+                    return cache.getDataTask();
                 }
             }
-            return cache.getMainTask();
+            log.debug("key {}, taskName {}", key, cache.getDataTask().getName());
+            return cache.getDataTask();
         } finally {
             keyLock.unlock();
         }
@@ -90,7 +91,6 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
         Lock lock = new ReentrantLock();
         Lock keyLock = keyLockMap.putIfAbsent(key, lock);
         if (keyLock == null) {
-            System.out.println("new lock");
             keyLock = lock;
         }
         return keyLock;
@@ -105,45 +105,84 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
      */
     private void setExpire(String key, Cache<T> cache, long expire) {
         if (runExpireTask(expire)) {
-            Future expireTask = executor.schedule(() -> removeCache(key, Defines.VOID_RUNNABLE), expire, TimeUnit.MILLISECONDS);
+            Future expireTask = executor.schedule(() -> removeExpiredCache(key, cache), expire, TimeUnit.MILLISECONDS);
             cache.setExpireTask(expireTask);
         }
     }
 
     /**
+     * 缓存任务到期，清除缓存
+     *
+     * @param key          key
+     * @param expiredCache 要清除的任务
+     */
+    private void removeExpiredCache(String key, Cache<T> expiredCache) {
+        Lock lock = getLock(key);
+        lock.lock();
+        try {
+            Cache<T> targetCache = taskCache.get(key);
+            if (null == targetCache) {
+                return;
+            }
+            // 下面的逻辑其实相当于task的compare方法
+            Task<T> targetTask = targetCache.getDataTask();
+            Task<T> expireTask = expiredCache.getDataTask();
+            log.debug("removeExpiredCache key {}, target task{}, expire task{}", key, targetTask.getName(), expireTask.getName());
+            // 不同名任务不清除
+            if (!targetTask.getName().equals(expireTask.getName())) {
+                log.debug("removeExpiredCache 1");
+                return;
+            }
+            // 设置了不覆盖并且现有任务设置的可覆盖，则不清除
+            if (!expireTask.isCoverOthers() && targetTask.isCoverOthers()) {
+                log.debug("removeExpiredCache 2");
+                return;
+            }
+            log.debug("removeExpiredCache remove key {}", key);
+            taskCache.remove(key);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
      * 判断是否覆盖同名的缓存任务
+     * 判断逻辑是：有相同的任务名称表示执行的代码一样不去覆盖，不同名且允许覆盖才可以
      *
      * @param cacheTask 已缓存的任务
      * @param newTask   新任务
      * @return 是否覆盖
      */
     private boolean coverTask(Task<T> cacheTask, Task<T> newTask) {
-        return !cacheTask.getName().equals(newTask.getName()) && newTask.isCoverOthers() && newTask.getPriority() > cacheTask.getPriority();
+        return !cacheTask.getName().equals(newTask.getName()) && newTask.isCoverOthers();
     }
 
 
     @Override
     public void removeCache(String key, Runnable runnable) {
-        log.info("removeCache {}", key);
-        Lock lock = keyLockMap.remove(key);
-        if (null != lock) {
+        Lock lock = keyLockMap.get(key);
+        lock.lock();
+        try {
+            Cache<T> cache = taskCache.get(key);
+            if (null == cache) return;
+            Future expireTask = cache.getExpireTask();
+            if (null == expireTask) return;
+            expireTask.cancel(true);
+        } finally {
             lock.unlock();
+            runnable.run();
         }
-        Cache<T> cache = taskCache.remove(key);
-        if (null == cache) return;
-        Future expireTask = cache.getExpireTask();
-        if (null == expireTask) return;
-        expireTask.cancel(true);
-        runnable.run();
     }
 
     @Data
     private static class Cache<T> {
+        // 清除缓存定时任务
         private Future expireTask;
-        private Task<T> mainTask;
+        // 获取数据主任务
+        private Task<T> dataTask;
 
-        Cache(Task<T> mainTask) {
-            this.mainTask = mainTask;
+        Cache(Task<T> dataTask) {
+            this.dataTask = dataTask;
         }
     }
 }

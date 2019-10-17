@@ -31,18 +31,32 @@ public class CacheTest {
     }
 
     public TestEntity add(String name) throws Exception {
-        Task<TestEntity> queryByNameTask = taskComplete("queryByName", false, 0, () -> testRepository.findByName(name).orElse(null));
-        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, queryByNameTask, Future::get, exceptionConverter, 0L);
+        // 先构造一个查询name是否存在的任务，任务名称为queryByName，然后不可覆盖其他相同任务名称的任务，具体执行操作为使用name查询数据库
+        Task<TestEntity> queryByNameTask = taskComplete("queryByName", false, () -> testRepository.findByName(name).orElse(null));
+        // 已name为key创建任务缓存，获取返回值使用future.get()方法，一直等待直到数据库返回结果，异常转换用通用的异常转换，该任务永不过期
+        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, queryByNameTask, Future::get, exceptionConverter, 100L);
+        // 如果存在name，直接返回实体
         if (nameCacheResult.hasResult()) {
             return nameCacheResult.result();
         }
+        // 如果在查询任务中出现异常直接从接口抛出
         nameCacheResult.throwException();
-        Task<TestEntity> addByNameTask = taskComplete("addByName", true, 1, () -> save(name));
+        // name唯一校验通过，开始进行添加数据库，这里还是按照name为key创建缓存任务，具体的执行任务为保存数据库，可覆盖其他任务，1s后缓存失效
+        Task<TestEntity> addByNameTask = taskComplete("addByName", true, () -> save(name));
         return nameCache.compute(name, addByNameTask, Future::get, (exception) -> new GlobalException("添加失败"), 1000L).result();
     }
 
-    private <T> Task<T> taskComplete(String name, boolean coverOthers, int priority, Callable<T> callable) {
-        return new Task<>(name, coverOthers, priority, callable);
+    /**
+     * 构造任务
+     *
+     * @param name        任务名称
+     * @param coverOthers 是否覆盖其他不同名任务
+     * @param callable    获取数据的任务代码
+     * @param <T>         数据泛型
+     * @return task
+     */
+    private <T> Task<T> taskComplete(String name, boolean coverOthers, Callable<T> callable) {
+        return new Task<>(name, coverOthers, callable);
     }
 
     private TestEntity save(String name) {

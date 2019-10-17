@@ -17,10 +17,10 @@ import java.util.function.Function;
 public interface TaskCache<T> {
 
     /**
-     * 将某个获取数据的执行任务缓存起来（过期时间默认为构造方法里面的时间，单位为ms）
+     * 将某个获取数据的执行任务缓存起来
      *
      * @param key              任务key
-     * @param dataTask         获取数据FutureTask
+     * @param dataTask         获取数据的Task
      * @param resultFunction   获取结果task方法（自定义使用Future.get()还是Future.get(long timeout, TimeUnit unit)）
      * @param exceptionHandler 任务执行异常转换
      * @param expire           定义任务缓存过期时间，小于等于0为永不过期
@@ -28,5 +28,11 @@ public interface TaskCache<T> {
      */
     CacheResult<T> compute(String key, Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire);
 
+    /**
+     * 清理缓存，这里会强制执行，慎重
+     *
+     * @param key      缓存key
+     * @param runnable 清理后执行的任务
+     */
     void removeCache(String key, Runnable runnable);
 }
