@@ -16,6 +16,9 @@ public class MemoryCacheImpl<T> implements CacheService<T> {
 
     private long expireTime;
 
+    /**
+     * @param expireTime 缓存失效时间（单位ms） 0为永久有效
+     */
     public MemoryCacheImpl(long expireTime) {
         this.expireTime = expireTime;
     }
@@ -29,13 +32,13 @@ public class MemoryCacheImpl<T> implements CacheService<T> {
     // 定时器线程池，用于清除过期缓存
     private final static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-    private Future<T> getFuture(String key, FutureTask<T> task, long expire) {
+    private Future<T> getFuture(String key, FutureTask<T> dataTask, long expire) {
         Cache<T> cache = taskCache.get(key);
         if (cache == null) {
-            cache = new Cache<>(task);
+            cache = new Cache<>(dataTask);
             Cache<T> putIfAbsent = taskCache.putIfAbsent(key, cache);
             if (null == putIfAbsent) {
-                task.run();
+                dataTask.run();
                 if (runExpireTask(expire)) {
                     Future expireTask = executor.schedule(() -> taskCache.remove(key), expire, TimeUnit.MILLISECONDS);
                     cache.setExpireTask(expireTask);
@@ -46,15 +49,15 @@ public class MemoryCacheImpl<T> implements CacheService<T> {
     }
 
     @Override
-    public CacheResult<T> compute(String key, FutureTask<T> task, FutureFunction<Future<T>, T> resultFunction,
+    public CacheResult<T> compute(String key, FutureTask<T> dataTask, FutureFunction<Future<T>, T> resultFunction,
                                   Function<Exception, Exception> exceptionHandler) {
-        return compute(key, task, resultFunction, exceptionHandler, expireTime);
+        return compute(key, dataTask, resultFunction, exceptionHandler, expireTime);
     }
 
     @Override
-    public CacheResult<T> compute(String key, FutureTask<T> task, FutureFunction<Future<T>, T> resultFunction,
+    public CacheResult<T> compute(String key, FutureTask<T> dataTask, FutureFunction<Future<T>, T> resultFunction,
                                   Function<Exception, Exception> exceptionHandler, long expire) {
-        Future<T> future = getFuture(key, task, expire);
+        Future<T> future = getFuture(key, dataTask, expire);
         CacheResult<T> cacheResult = new CacheResult<>();
         try {
             cacheResult.setResult(resultFunction.apply(future));
@@ -65,8 +68,8 @@ public class MemoryCacheImpl<T> implements CacheService<T> {
     }
 
     @Override
-    public CacheResult<T> compute(String key, FutureTask<T> task, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire, Runnable afterRun) {
-        CacheResult<T> cacheResult = compute(key, task, resultFunction, exceptionHandler, expire);
+    public CacheResult<T> compute(String key, FutureTask<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire, Runnable afterRun) {
+        CacheResult<T> cacheResult = compute(key, dataTask, resultFunction, exceptionHandler, expire);
         new Thread(afterRun).start();
         return cacheResult;
     }
