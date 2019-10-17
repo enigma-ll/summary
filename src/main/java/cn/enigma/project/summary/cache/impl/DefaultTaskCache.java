@@ -17,17 +17,12 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
 
     private static final long EXPIRE_UNLIMITED = 0L;
 
-    private boolean runExpireTask(long expire) {
-        return expire > EXPIRE_UNLIMITED;
-    }
-
     // 存储获取数据task以及定时清除任务task
     private ConcurrentHashMap<String, Cache<T>> taskCache = new ConcurrentHashMap<>(1000);
     // 更新任务时进行加锁处理
     private ConcurrentHashMap<String, Lock> keyLockMap = new ConcurrentHashMap<>(1000);
     // 定时器线程池，用于清除过期缓存
-    private final static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
 
     @Override
     public CacheResult<T> compute(String key, Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire) {
@@ -104,10 +99,20 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
      * @param expire 过期时间（ms）
      */
     private void setExpire(String key, Cache<T> cache, long expire) {
-        if (runExpireTask(expire)) {
+        if (isRunExpireTask(expire)) {
             Future expireTask = executor.schedule(() -> removeExpiredCache(key, cache), expire, TimeUnit.MILLISECONDS);
             cache.setExpireTask(expireTask);
         }
+    }
+
+    /**
+     * 是否运行定时清理任务
+     *
+     * @param expire 过期时长
+     * @return 是否开启任务
+     */
+    private boolean isRunExpireTask(long expire) {
+        return expire > EXPIRE_UNLIMITED;
     }
 
     /**

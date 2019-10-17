@@ -21,17 +21,16 @@ public class TestEntityInit extends SystemInit {
     private TestRepository testRepository;
     private final SnowflakeIdWorker snowflakeIdWorker = SnowflakeIdWorker.getInstance(1L, 1L);
 
-    @Autowired
     public TestEntityInit(TestRepository testRepository) {
         this.testRepository = testRepository;
     }
 
     public void initTestData() {
-        for (int i = 0; i < 500000; i++) {
+        for (int i = 0; i < 2; i++) {
             Long id = snowflakeIdWorker.nextId();
             TestEntity testEntity = new TestEntity(id.toString(), "two-" + id, "three-" + id,
                     "four-" + id, "five-" + id, "six-" + id);
-//            testRepository.save(testEntity);
+            testRepository.save(testEntity);
         }
         log.info("init finish");
     }

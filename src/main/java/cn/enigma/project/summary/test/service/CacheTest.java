@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
 @Service
@@ -25,7 +27,6 @@ public class CacheTest {
 
     private final TestRepository testRepository;
 
-    @Autowired
     public CacheTest(TestRepository testRepository) {
         this.testRepository = testRepository;
     }
@@ -34,7 +35,7 @@ public class CacheTest {
         // 先构造一个查询name是否存在的任务，任务名称为queryByName，然后不可覆盖其他相同任务名称的任务，具体执行操作为使用name查询数据库
         Task<TestEntity> queryByNameTask = taskComplete("queryByName", false, () -> testRepository.findByName(name).orElse(null));
         // 已name为key创建任务缓存，获取返回值使用future.get()方法，一直等待直到数据库返回结果，异常转换用通用的异常转换，该任务永不过期
-        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, queryByNameTask, Future::get, exceptionConverter, 100L);
+        CacheResult<TestEntity> nameCacheResult = nameCache.compute(name, queryByNameTask, Future::get, exceptionConverter, 1000L);
         // 如果存在name，直接返回实体
         if (nameCacheResult.hasResult()) {
             return nameCacheResult.result();

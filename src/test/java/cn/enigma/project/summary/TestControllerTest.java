@@ -1,6 +1,7 @@
 package cn.enigma.project.summary;
 
 import cn.enigma.project.summary.test.entity.TestEntity;
+import cn.enigma.project.summary.test.service.CacheTest;
 import cn.enigma.project.summary.test.service.TestService;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
 public class TestControllerTest {
 
     @Autowired
-    private TestService testService;
+    private CacheTest testService;
 
     @Before
     public void setUp() throws Exception {
