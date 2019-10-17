@@ -1,7 +1,8 @@
 package cn.enigma.project.summary.cache.impl;
 
-import cn.enigma.project.summary.cache.TaskCache;
+import cn.enigma.project.summary.cache.Defines;
 import cn.enigma.project.summary.cache.Task;
+import cn.enigma.project.summary.cache.TaskCache;
 import cn.enigma.project.summary.cache.function.FutureFunction;
 import cn.enigma.project.summary.cache.pojo.CacheResult;
 import lombok.Data;
@@ -41,6 +42,14 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
         return cacheResult;
     }
 
+    /**
+     * 添加缓存or获取缓存任务future
+     *
+     * @param key      key
+     * @param dataTask 任务
+     * @param expire   过期时间
+     * @return 任务
+     */
     private Future<T> getFuture(String key, Task<T> dataTask, long expire) {
         Lock keyLock = getLock(key);
         keyLock.lock();
@@ -71,6 +80,12 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
         }
     }
 
+    /**
+     * 获取每个key对应的锁
+     *
+     * @param key 缓存key
+     * @return 锁
+     */
     private Lock getLock(String key) {
         Lock lock = new ReentrantLock();
         Lock keyLock = keyLockMap.putIfAbsent(key, lock);
@@ -81,14 +96,27 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
         return keyLock;
     }
 
+    /**
+     * 设置过期清除task
+     *
+     * @param key    缓存key
+     * @param cache  缓存任务
+     * @param expire 过期时间（ms）
+     */
     private void setExpire(String key, Cache<T> cache, long expire) {
         if (runExpireTask(expire)) {
-            Future expireTask = executor.schedule(() -> removeCache(key, () -> {
-            }), expire, TimeUnit.MILLISECONDS);
+            Future expireTask = executor.schedule(() -> removeCache(key, Defines.VOID_RUNNABLE), expire, TimeUnit.MILLISECONDS);
             cache.setExpireTask(expireTask);
         }
     }
 
+    /**
+     * 判断是否覆盖同名的缓存任务
+     *
+     * @param cacheTask 已缓存的任务
+     * @param newTask   新任务
+     * @return 是否覆盖
+     */
     private boolean coverTask(Task<T> cacheTask, Task<T> newTask) {
         return !cacheTask.getName().equals(newTask.getName()) && newTask.isCoverOthers() && newTask.getPriority() > cacheTask.getPriority();
     }
