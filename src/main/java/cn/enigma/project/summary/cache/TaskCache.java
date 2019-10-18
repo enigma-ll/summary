@@ -28,6 +28,8 @@ public interface TaskCache<T> {
      */
     CacheResult<T> compute(String key, Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire);
 
+    CacheResult<T> batchCompute(Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire,  String... keys);
+
     /**
      * 清理缓存，这里会强制执行，慎重
      *

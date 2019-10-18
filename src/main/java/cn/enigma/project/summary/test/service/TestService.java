@@ -23,8 +23,6 @@ import java.util.List;
 @Service
 public class TestService {
 
-    private final PartQuery<TestEntity> partQuery = new PartQuery<>();
-
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -37,7 +35,7 @@ public class TestService {
 
 
     public List<TestOneBO> listOne() {
-        return partQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, (root, query, criteriaBuilder) -> entityManager.getCriteriaBuilder().and());
+        return PartQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, (root, query, criteriaBuilder) -> entityManager.getCriteriaBuilder().and());
     }
 
     public List<TestEntity> listAll() {
@@ -46,7 +44,7 @@ public class TestService {
 
     public List<TestOneBO> findOne(Integer id) {
         Specification<TestEntity> specification = (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id);
-        return partQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, specification);
+        return PartQuery.statisticsQuery(entityManager, TestOneBO.class, TestEntity.class, specification);
     }
 
     public TestEntity findEntity(Integer id) {

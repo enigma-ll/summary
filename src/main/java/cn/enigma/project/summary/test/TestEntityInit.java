@@ -5,7 +5,6 @@ import cn.enigma.project.common.util.SnowflakeIdWorker;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,7 +29,7 @@ public class TestEntityInit extends SystemInit {
             Long id = snowflakeIdWorker.nextId();
             TestEntity testEntity = new TestEntity(id.toString(), "two-" + id, "three-" + id,
                     "four-" + id, "five-" + id, "six-" + id);
-            testRepository.save(testEntity);
+//            testRepository.save(testEntity);
         }
         log.info("init finish");
     }

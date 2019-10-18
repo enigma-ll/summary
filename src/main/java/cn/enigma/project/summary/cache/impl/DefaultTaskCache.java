@@ -36,6 +36,22 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
         return cacheResult;
     }
 
+    @Override
+    public CacheResult<T> batchCompute(Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire, String... keys) {
+        Future<T> future = null;
+        for (String key : keys) {
+            future = getFuture(key, dataTask, expire);
+        }
+        CacheResult<T> cacheResult = new CacheResult<>();
+        try {
+            cacheResult.setResult(resultFunction.apply(future));
+        } catch (Exception e) {
+            cacheResult.setException(exceptionHandler.apply(e));
+        }
+        return cacheResult;
+    }
+
+
     /**
      * 添加缓存or获取缓存任务future
      *

@@ -16,4 +16,6 @@ import java.util.Optional;
 public interface TestRepository extends CrudRepository<TestEntity, Integer> {
 
     Optional<TestEntity> findByName(String name);
+
+    Optional<TestEntity> findByAge(String age);
 }

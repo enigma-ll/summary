@@ -29,4 +29,8 @@ public class Task<T> extends FutureTask<T> {
     public Task(String name, Runnable runnable, T result) {
         super(runnable, result);
     }
+
+    public static <T> Task<T> complete(String name, boolean coverOthers, Callable<T> callable) {
+        return new Task<>(name, coverOthers, callable);
+    }
 }

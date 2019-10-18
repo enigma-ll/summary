@@ -9,13 +9,10 @@ import cn.enigma.project.summary.cache.impl.DefaultTaskCache;
 import cn.enigma.project.summary.cache.pojo.CacheResult;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
 @Service
@@ -57,7 +54,7 @@ public class CacheTest {
      * @return task
      */
     private <T> Task<T> taskComplete(String name, boolean coverOthers, Callable<T> callable) {
-        return new Task<>(name, coverOthers, callable);
+        return Task.complete(name, coverOthers, callable);
     }
 
     private TestEntity save(String name) {

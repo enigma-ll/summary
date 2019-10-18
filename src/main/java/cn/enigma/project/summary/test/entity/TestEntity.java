@@ -1,6 +1,7 @@
 package cn.enigma.project.summary.test.entity;
 
 import cn.enigma.project.jpa.entity.BaseEntity;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.DynamicInsert;
@@ -16,6 +17,7 @@ import javax.persistence.*;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
 @Entity
 @Table(name = "test_info")
 @DynamicInsert
@@ -30,6 +32,9 @@ public class TestEntity extends BaseEntity {
 
     @Column
     private String name;
+
+    @Column
+    private String age;
 
     @Column
     private String columnOne;

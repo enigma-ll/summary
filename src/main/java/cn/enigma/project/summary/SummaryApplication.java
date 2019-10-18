@@ -13,5 +13,4 @@ public class SummaryApplication {
     public static void main(String[] args) {
         SpringApplication.run(SummaryApplication.class, args);
     }
-
 }
