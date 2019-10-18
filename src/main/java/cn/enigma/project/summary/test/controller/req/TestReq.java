@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.test.controller.req;
 
-import cn.enigma.project.summary.test.check.CheckRepeat;
+import cn.enigma.project.summary.test.check.Checking;
 import cn.enigma.project.summary.test.check.CheckRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,8 +14,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class TestReq extends CheckRequest {
-    @CheckRepeat(name = "姓名", tableColumn = "name")
+    @Checking(name = "姓名", tableColumn = "name")
     private String name;
-    @CheckRepeat(name = "年龄", tableColumn = "age")
+    @Checking(name = "年龄", tableColumn = "age")
     private String age;
 }

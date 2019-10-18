@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public class CachedTaskCompute<T> implements TaskCompute<T> {
+public class RamCachedTaskCompute<T> implements TaskCompute<T> {
 
     private static final long EXPIRE_UNLIMITED = 0L;
 
@@ -50,12 +50,13 @@ public class CachedTaskCompute<T> implements TaskCompute<T> {
     /**
      * 添加缓存or获取缓存任务future
      *
-     * @param key      key
-     * @param dataTask 任务
-     * @param expire   过期时间
+     * @param key    key
+     * @param task   任务
+     * @param expire 过期时间
      * @return 任务
      */
-    private Task<T> handleTask(String key, Task<T> dataTask, long expire) {
+    private Task<T> handleTask(String key, Task<T> task, long expire) {
+        log.debug("[{}]开始处理任务：[{}]", key, task);
         Lock keyLock = getLock(key);
         keyLock.lock();
         Cache<T> cache;
@@ -63,24 +64,24 @@ public class CachedTaskCompute<T> implements TaskCompute<T> {
             cache = taskCache.get(key);
             if (cache == null) {
                 // 如果缓存中没有内容，则直接添加到缓存中
-                cache = new Cache<>(dataTask);
+                cache = new Cache<>(task);
                 Cache<T> putIfAbsent = taskCache.putIfAbsent(key, cache);
                 if (null == putIfAbsent) {
                     // 添加之后，开启任务执行，设置过期清理task
-                    dataTask.run();
+                    task.run();
                     setExpire(key, cache, expire);
                 }
             } else {
                 // 如果已存在任务，判断是否覆盖新的任务
-                if (coverTask(cache.dataTask, dataTask)) {
-                    cache = new Cache<>(dataTask);
+                if (coverTask(cache.dataTask, task)) {
+                    cache = new Cache<>(task);
                     taskCache.put(key, cache);
-                    dataTask.run();
+                    task.run();
                     setExpire(key, cache, expire);
                     return cache.getDataTask();
                 }
             }
-            log.debug("key {}, taskName {}", key, cache.getDataTask().getName());
+            log.debug("[{}]实际执行任务：[{}]", key, cache.getDataTask());
             return cache.getDataTask();
         } finally {
             keyLock.unlock();
@@ -143,18 +144,16 @@ public class CachedTaskCompute<T> implements TaskCompute<T> {
             // 下面的逻辑其实相当于task的compare方法
             Task<T> targetTask = targetCache.getDataTask();
             Task<T> expireTask = expiredCache.getDataTask();
-            log.debug("removeExpiredCache key {}, target task{}, expire task{}", key, targetTask.getName(), expireTask.getName());
+            log.debug("[{}]清理过期缓存任务：[{}]，当前缓存任务：[{}]", key, expiredCache, targetTask);
             // 不同名任务不清除
             if (!targetTask.getName().equals(expireTask.getName())) {
-                log.debug("removeExpiredCache 1");
                 return;
             }
             // 设置了不覆盖并且现有任务设置的可覆盖，则不清除
             if (!expireTask.isCoverOthers() && targetTask.isCoverOthers()) {
-                log.debug("removeExpiredCache 2");
                 return;
             }
-            log.debug("removeExpiredCache remove key {}", key);
+            log.debug("[{}]清理过期缓存", key);
             taskCache.remove(key);
         } finally {
             lock.unlock();
@@ -175,7 +174,7 @@ public class CachedTaskCompute<T> implements TaskCompute<T> {
 
 
     @Override
-    public void removeCache(String key, Runnable runnable) {
+    public void removeCache(String key) {
         Lock lock = keyLockMap.get(key);
         lock.lock();
         try {
@@ -186,7 +185,6 @@ public class CachedTaskCompute<T> implements TaskCompute<T> {
             expireTask.cancel(true);
         } finally {
             lock.unlock();
-            runnable.run();
         }
     }
 

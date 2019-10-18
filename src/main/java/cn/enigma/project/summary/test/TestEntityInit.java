@@ -29,7 +29,7 @@ public class TestEntityInit extends SystemInit {
             Long id = snowflakeIdWorker.nextId();
             TestEntity testEntity = new TestEntity(id.toString(), "two-" + id, "three-" + id,
                     "four-" + id, "five-" + id, "six-" + id);
-//            testRepository.save(testEntity);
+            testRepository.save(testEntity);
         }
         log.info("init finish");
     }

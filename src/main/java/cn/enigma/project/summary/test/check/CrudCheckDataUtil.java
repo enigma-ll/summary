@@ -1,7 +1,8 @@
 package cn.enigma.project.summary.test.check;
 
+import cn.enigma.project.common.exception.GlobalException;
 import cn.enigma.project.jpa.entity.BaseEntity;
-import cn.enigma.project.jpa.part.PartQuery;
+import cn.enigma.project.jpa.query.partial.PartQuery;
 import cn.enigma.project.summary.task.Task;
 import cn.enigma.project.summary.task.TaskCompute;
 import cn.enigma.project.summary.task.TaskResult;
@@ -21,38 +22,42 @@ import java.util.function.Function;
  * Modified By:
  * Description:
  */
-public class AddCheckUtil {
+public class CrudCheckDataUtil {
 
     private static final String SEPARATOR = ":";
     private static final String QUERY_TASK_NAME_PREFIX = "query";
-    private static final String ADD_TASK_NAME_PREFIX = "add_entity";
+    private static final String ADD_TASK_NAME_PREFIX = "add";
 
-    public static <T extends BaseEntity, R extends CheckRequest> TaskResult<T> addEntityV1(String operation,
-                                                                                           Class<T> entity,
-                                                                                           TaskCompute<T> taskCompute,
-                                                                                           R request,
-                                                                                           EntityManager entityManager,
-                                                                                           Function<R, T> addFunction) {
-        List<CheckInfo> pendingCheckList = getCheckInfo(request);
+    private static final long EXPIRE_TIME = 1000L;
+
+    public static <T extends BaseEntity, R extends CheckRequest> CheckResult<T> addEntity(String operation,
+                                                                                          Class<T> entity,
+                                                                                          TaskCompute<T> taskCompute,
+                                                                                          R request,
+                                                                                          EntityManager entityManager,
+                                                                                          Function<R, T> addFunction) {
+        List<CheckInfo<String>> pendingCheckList = getCheckInfo(request);
         int len = pendingCheckList.size();
         String[] keys = new String[len];
         // for循环依次执行检查任务
         for (int i = 0; i < len; i++) {
-            CheckInfo checkInfo = pendingCheckList.get(i);
+            CheckInfo<String> checkInfo = pendingCheckList.get(i);
             //  每一个要检测的数据确保要生成唯一的key
-            String key = generateTaskKey(operation, checkInfo);
+            String key = generateTaskKey(operation, checkInfo, entity);
             keys[i] = key;
             Task<T> queryTask = generateQueryTask(operation, checkInfo, entityManager, entity);
-            // 以具体的数据生成key进行缓存任务，获取任务使用Future.get()一直等待直至返回结果，查询任务暂时设置永不过期
-            TaskResult<T> queryTaskResult = taskCompute.compute(key, queryTask, Future::get, 0L);
+            // 以具体的数据生成key进行缓存任务，获取任务使用Future.get()一直等待直至返回结果
+            TaskResult<T> queryTaskResult = taskCompute.compute(key, queryTask, Future::get, EXPIRE_TIME);
             if (queryTaskResult.hasResult()) {
-                return queryTaskResult;
+                return new CheckResult<>(checkInfo, queryTaskResult);
             }
         }
+        CheckInfo<R> checkInfo = new CheckInfo<>(request.getClass().getSimpleName(), request, request.getClass().getSimpleName());
         Task<T> addTask = generateAddTask(request, addFunction);
         // 这里批量添加后，之前的同名查询任务会被addEntityTask任务覆盖，也就是说后续有新的添加请求进来时，先走查询代码，
         // 会发现某个实体属性的某个值已经存在了添加任务，然后直接等待操作结果就行，这样就避免了添加重复数据
-        return taskCompute.batchCompute(keys, addTask, Future::get, 1000L);
+        TaskResult<T> addTaskResult = taskCompute.batchCompute(keys, addTask, Future::get, EXPIRE_TIME);
+        return new CheckResult<>(checkInfo, addTaskResult);
     }
 
     /**
@@ -61,17 +66,20 @@ public class AddCheckUtil {
      * @param request 请求类，需要检测的属性用@CheckRepeat注解标注
      * @return 待检验的信息列表
      */
-    private static List<CheckInfo> getCheckInfo(CheckRequest request) {
-        List<CheckInfo> list = new ArrayList<>();
+    private static List<CheckInfo<String>> getCheckInfo(CheckRequest request) {
+        List<CheckInfo<String>> list = new ArrayList<>();
         Field[] fields = request.getClass().getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
-            if (field.isAnnotationPresent(CheckRepeat.class)) {
+            if (field.isAnnotationPresent(Checking.class)) {
                 try {
-                    CheckRepeat checkRepeat = field.getAnnotation(CheckRepeat.class);
-                    list.add(new CheckInfo(checkRepeat.name(), field.get(request).toString(), checkRepeat.tableColumn()));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    Checking checking = field.getAnnotation(Checking.class);
+                    Object value = field.get(request);
+                    if (null == value || "".equals(value.toString())) {
+                        continue;
+                    }
+                    list.add(new CheckInfo<>(checking.name(), value.toString(), checking.tableColumn()));
+                } catch (IllegalAccessException ignored) {
                 }
             }
         }
@@ -86,8 +94,8 @@ public class AddCheckUtil {
      * @param checkInfo 检测内容
      * @return 任务key
      */
-    private static String generateTaskKey(String operation, CheckInfo checkInfo) {
-        return operation + SEPARATOR + checkInfo.getAttributeName() + SEPARATOR + checkInfo.getValue();
+    private static <T extends BaseEntity> String generateTaskKey(String operation, CheckInfo checkInfo, Class<T> entity) {
+        return operation + SEPARATOR + entity.getSimpleName() + SEPARATOR + checkInfo.getAttributeName() + SEPARATOR + checkInfo.getValue();
     }
 
     /**
@@ -100,11 +108,11 @@ public class AddCheckUtil {
      * @param <T>           数据库实体泛型
      * @return task
      */
-    private static <T extends BaseEntity> Task<T> generateQueryTask(String operation, CheckInfo checkInfo,
+    private static <T extends BaseEntity> Task<T> generateQueryTask(String operation, CheckInfo<String> checkInfo,
                                                                     EntityManager entityManager, Class<T> entity) {
         Callable<T> queryTaskCallable = () -> generateQueryCallable(entityManager, checkInfo.getAttributeName(), checkInfo.getValue(), entity);
         // 查询任务级别比较低，如果某个数据已经存在查询任务则会直接等待执行结果，避免重复查询
-        Task<T> task = taskComplete(operation + QUERY_TASK_NAME_PREFIX + checkInfo.getAttributeName(), false, queryTaskCallable);
+        Task<T> task = taskComplete(QUERY_TASK_NAME_PREFIX + SEPARATOR + checkInfo.getAttributeName(), false, queryTaskCallable);
         task.setTaskType(AddCheckTaskType.QUERY);
         return task;
     }
@@ -154,4 +162,28 @@ public class AddCheckUtil {
         addTask.setTaskType(AddCheckTaskType.ADD);
         return addTask;
     }
+
+    /**
+     * 获取最终数据，如果发现query有返回数据，则抛出异常
+     *
+     * @param checkResult 检测结果
+     * @param request     接口请求参数
+     * @param <T>         数据库实体泛型
+     * @param <R>         请求数据class泛型
+     * @return 数据库实体
+     * @throws Exception 出现重复数据抛出的异常
+     */
+    public static <T extends BaseEntity, R extends CheckRequest> T getResult(CheckResult<T> checkResult, R request) throws Exception {
+        if (checkResult.getCheckInfo().getValue().equals(request)) {
+            return checkResult.getTaskResult().result();
+        }
+        TaskResult<T> taskResult = checkResult.getTaskResult();
+        if (taskResult.getOriginalTask().getTaskType().type().equals(AddCheckTaskType.QUERY.type()) && taskResult.hasResult()) {
+            CheckInfo checkInfo = checkResult.getCheckInfo();
+            throw new GlobalException(checkInfo.getName() + "【" + checkInfo.getValue() + "】已存在！");
+        }
+        return checkResult.getTaskResult().result();
+    }
+
+
 }

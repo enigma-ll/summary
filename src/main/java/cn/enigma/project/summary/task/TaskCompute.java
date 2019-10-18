@@ -37,8 +37,7 @@ public interface TaskCompute<T> {
     /**
      * 清理缓存，这里会强制执行，慎用
      *
-     * @param key      缓存key
-     * @param runnable 清理后执行的任务
+     * @param key 缓存key
      */
-    void removeCache(String key, Runnable runnable);
+    void removeCache(String key);
 }

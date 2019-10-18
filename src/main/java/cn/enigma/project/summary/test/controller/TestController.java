@@ -3,7 +3,7 @@ package cn.enigma.project.summary.test.controller;
 import cn.enigma.project.common.controller.trace.annotation.HttpTrace;
 import cn.enigma.project.summary.test.controller.req.TestReq;
 import cn.enigma.project.summary.test.entity.TestEntity;
-import cn.enigma.project.summary.test.service.CacheTest1;
+import cn.enigma.project.summary.test.service.AddCheckTest;
 import cn.enigma.project.summary.test.service.TestOneBO;
 import cn.enigma.project.summary.test.service.TestService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,12 +27,12 @@ import java.util.List;
 public class TestController {
 
     private final TestService testService;
-    private final CacheTest1 cacheTest1;
+    private final AddCheckTest addCheckTest;
 
     @Autowired
-    public TestController(TestService testService, CacheTest1 cacheTest1) {
+    public TestController(TestService testService, AddCheckTest addCheckTest) {
         this.testService = testService;
-        this.cacheTest1 = cacheTest1;
+        this.addCheckTest = addCheckTest;
     }
 
     @HttpTrace
@@ -68,12 +68,12 @@ public class TestController {
     @HttpTrace
     @GetMapping("add")
     public TestEntity add(TestReq testReq) throws Exception {
-        return cacheTest1.addV1(testReq);
+        return addCheckTest.add(testReq);
     }
 
     @HttpTrace
     @GetMapping("add/v1")
     public TestEntity addV1(TestReq testReq) throws Exception {
-        return cacheTest1.addV1(testReq);
+        return addCheckTest.add(testReq);
     }
 }

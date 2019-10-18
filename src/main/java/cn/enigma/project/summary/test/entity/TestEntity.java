@@ -1,6 +1,7 @@
 package cn.enigma.project.summary.test.entity;
 
 import cn.enigma.project.jpa.entity.BaseEntity;
+import cn.enigma.project.jpa.query.partial.QueryColumn;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,6 +27,7 @@ public class TestEntity extends BaseEntity {
 
     private static final long serialVersionUID = -451754529963459226L;
 
+    @QueryColumn
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -56,6 +58,10 @@ public class TestEntity extends BaseEntity {
 
     public TestEntity() {
 
+    }
+
+    public TestEntity(Integer id) {
+        this.id = id;
     }
 
     public TestEntity(String columnOne, String columnTwo, String columnThree, String columnFour, String columnFive, String columnSix) {

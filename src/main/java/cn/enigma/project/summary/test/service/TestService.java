@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.test.service;
 
-import cn.enigma.project.jpa.part.PartQuery;
+import cn.enigma.project.jpa.query.partial.PartQuery;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import lombok.extern.slf4j.Slf4j;

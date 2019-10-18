@@ -1,5 +1,6 @@
 package cn.enigma.project.summary.test.service;
 
+import cn.enigma.project.jpa.query.partial.QueryColumn;
 import lombok.Data;
 
 /**
@@ -11,8 +12,10 @@ import lombok.Data;
 @Data
 public class TestOneBO {
 
+    @QueryColumn
     private String columnOne;
 
+    @QueryColumn
     private String columnSix;
 
     public TestOneBO(String columnOne, String columnSix) {
