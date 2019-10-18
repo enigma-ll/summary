@@ -11,7 +11,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class CheckBean {
+public class CheckInfo {
     private String name;
     private String value;
     private String attributeName;

@@ -1,26 +1,27 @@
 package cn.enigma.project.summary.test.service;
 
-import cn.enigma.project.common.exception.GlobalException;
 import cn.enigma.project.common.util.SnowflakeIdWorker;
-import cn.enigma.project.summary.cache.TaskCache;
-import cn.enigma.project.summary.cache.impl.DefaultTaskCache;
+import cn.enigma.project.summary.task.CachedTaskCompute;
+import cn.enigma.project.summary.task.TaskCompute;
+import cn.enigma.project.summary.task.TaskResult;
 import cn.enigma.project.summary.test.check.AddCheckUtil;
-import cn.enigma.project.summary.test.check.CheckOverFunction;
 import cn.enigma.project.summary.test.controller.req.TestReq;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+@Slf4j
 @Service
 public class CacheTest1 {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    private TaskCache<TestEntity> nameCache = new DefaultTaskCache<>();
+    private TaskCompute<TestEntity> nameCache = new CachedTaskCompute<>();
 
     private final TestRepository testRepository;
 
@@ -29,22 +30,20 @@ public class CacheTest1 {
     }
 
     public TestEntity add(TestReq testReq) throws Exception {
-        // 这里表示每个重复检查项发现重复之后的执行代码
-        CheckOverFunction<TestEntity> overFunction = (checkBean, result) -> {
-            // 如果发现异常，直接从接口throw
-            if (result.hasResult()) {
-                throw new GlobalException(checkBean.getName() + "【" + checkBean.getValue() + "】已存在");
-            }
-            result.throwException();
-        };
-        return AddCheckUtil.addEntity(nameCache,
+        return addV1(testReq);
+    }
+
+    public TestEntity addV1(TestReq testReq) throws Exception {
+        TaskResult<TestEntity> taskResult = AddCheckUtil.addEntityV1(
                 "addTestEntity",
+                TestEntity.class,
+                nameCache,
                 testReq,
                 entityManager,
-                overFunction,
-                this::save,
-                TestEntity.class
+                this::save
         );
+        log.info("{}", taskResult);
+        return taskResult.result();
     }
 
     private TestEntity save(TestReq req) {

@@ -1,19 +1,14 @@
-package cn.enigma.project.summary.cache.impl;
+package cn.enigma.project.summary.task;
 
-import cn.enigma.project.summary.cache.Task;
-import cn.enigma.project.summary.cache.TaskCache;
-import cn.enigma.project.summary.cache.function.FutureFunction;
-import cn.enigma.project.summary.cache.pojo.CacheResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 
 @Slf4j
-public class DefaultTaskCache<T> implements TaskCache<T> {
+public class CachedTaskCompute<T> implements TaskCompute<T> {
 
     private static final long EXPIRE_UNLIMITED = 0L;
 
@@ -22,33 +17,33 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
     // 更新任务时进行加锁处理
     private ConcurrentHashMap<String, Lock> keyLockMap = new ConcurrentHashMap<>(1000);
     // 定时器线程池，用于清除过期缓存
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Override
-    public CacheResult<T> compute(String key, Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire) {
-        Future<T> future = getFuture(key, dataTask, expire);
-        CacheResult<T> cacheResult = new CacheResult<>();
+    public TaskResult<T> compute(String key, Task<T> task, TaskFunction<Future<T>, T> getValue, long expire) {
+        Task<T> actualTask = handleTask(key, task, expire);
+        TaskResult<T> res = new TaskResult<>(task, actualTask);
         try {
-            cacheResult.setResult(resultFunction.apply(future));
+            res.setResult(getValue.getValue(actualTask));
         } catch (Exception e) {
-            cacheResult.setException(exceptionHandler.apply(e));
+            res.setException(e);
         }
-        return cacheResult;
+        return res;
     }
 
     @Override
-    public CacheResult<T> batchCompute(Task<T> dataTask, FutureFunction<Future<T>, T> resultFunction, Function<Exception, Exception> exceptionHandler, long expire, String... keys) {
-        Future<T> future = null;
+    public TaskResult<T> batchCompute(String[] keys, Task<T> task, TaskFunction<Future<T>, T> getValue, long expire) {
+        Task<T> actualTask = null;
         for (String key : keys) {
-            future = getFuture(key, dataTask, expire);
+            actualTask = handleTask(key, task, expire);
         }
-        CacheResult<T> cacheResult = new CacheResult<>();
+        TaskResult<T> res = new TaskResult<>(task, actualTask);
         try {
-            cacheResult.setResult(resultFunction.apply(future));
+            res.setResult(getValue.getValue(actualTask));
         } catch (Exception e) {
-            cacheResult.setException(exceptionHandler.apply(e));
+            res.setException(e);
         }
-        return cacheResult;
+        return res;
     }
 
 
@@ -60,7 +55,7 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
      * @param expire   过期时间
      * @return 任务
      */
-    private Future<T> getFuture(String key, Task<T> dataTask, long expire) {
+    private Task<T> handleTask(String key, Task<T> dataTask, long expire) {
         Lock keyLock = getLock(key);
         keyLock.lock();
         Cache<T> cache;
@@ -116,7 +111,7 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
      */
     private void setExpire(String key, Cache<T> cache, long expire) {
         if (isRunExpireTask(expire)) {
-            Future expireTask = executor.schedule(() -> removeExpiredCache(key, cache), expire, TimeUnit.MILLISECONDS);
+            Future expireTask = executor.schedule(() -> removeExpiredTask(key, cache), expire, TimeUnit.MILLISECONDS);
             cache.setExpireTask(expireTask);
         }
     }
@@ -137,7 +132,7 @@ public class DefaultTaskCache<T> implements TaskCache<T> {
      * @param key          key
      * @param expiredCache 要清除的任务
      */
-    private void removeExpiredCache(String key, Cache<T> expiredCache) {
+    private void removeExpiredTask(String key, Cache<T> expiredCache) {
         Lock lock = getLock(key);
         lock.lock();
         try {

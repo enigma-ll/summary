@@ -1,11 +1,11 @@
-package cn.enigma.project.summary.cache.pojo;
+package cn.enigma.project.summary.task;
 
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @NoArgsConstructor
 @Setter
-public class CacheResult<T> {
+class CacheResult<T> {
     private T result;
     private Exception exception;
 
