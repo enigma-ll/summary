@@ -176,9 +176,7 @@ public class CrudCheckDataUtil {
      * @return 是否需要返回
      */
     private static boolean needReturn(CheckInfo checkInfo, TaskResult<?> taskResult) {
-        // 如果检测类型是检测存在，但是没有返回结果，直接返回
         if (checkInfo.getCheckType().equals(Checking.CheckType.NOT_EXIST) && taskResult.hasResult()) {
-            // 如果检测类型是检测不存在，但是有返回结果，直接返回
             return true;
         } else return checkInfo.getCheckType().equals(Checking.CheckType.EXIST) && !taskResult.hasResult();
     }
