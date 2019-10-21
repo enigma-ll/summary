@@ -193,8 +193,8 @@ public class CrudCheckDataUtil {
      * @return 数据库实体
      * @throws Exception 出现重复数据抛出的异常
      */
-    public static <T extends BaseEntity, R extends CheckRequest> T getResult4Insert(CheckResult<T> checkResult, R request) throws Exception {
-
+    public static <T extends BaseEntity, R extends CheckRequest> T getResult4Insert(CheckResult<T> checkResult, R request)
+            throws Exception {
         if (checkResult.getCheckInfo().getValue().equals(request)) {
             return checkResult.getTaskResult().result();
         }
@@ -214,12 +214,12 @@ public class CrudCheckDataUtil {
     }
 
     public static <T extends BaseEntity, R extends CheckRequest, I extends Number> CheckResult<T> updateEntity(String operation,
-                                                                                             Class<T> entity,
-                                                                                             TaskCacheCompute<T> taskCacheCompute,
-                                                                                             R request,
-                                                                                             I id,
-                                                                                             EntityManager entityManager,
-                                                                                             Function<Object, R, T> updateFunction) {
+                                                                                                               Class<T> entity,
+                                                                                                               TaskCacheCompute<T> taskCacheCompute,
+                                                                                                               R request,
+                                                                                                               I id,
+                                                                                                               EntityManager entityManager,
+                                                                                                               Function<I, R, T> updateFunction) {
         List<CheckInfo<String>> pendingCheckList = getCheckInfo(request);
         int len = pendingCheckList.size();
         String[] keys = new String[len];
@@ -298,7 +298,7 @@ public class CrudCheckDataUtil {
      * @param <R>         请求数据泛型
      * @return task
      */
-    private static <T extends BaseEntity, R extends CheckRequest, I extends Number> Task<T> generateUpdateTask(I id, R request, Function<Object, R, T> addFunction) {
+    private static <T extends BaseEntity, R extends CheckRequest, I extends Number> Task<T> generateUpdateTask(I id, R request, Function<I, R, T> addFunction) {
         // 构造添加数据的任务名称
         String addTaskName = UPDATE_TASK_NAME_PREFIX + SEPARATOR + request.getClass().getSimpleName() + SEPARATOR + request.hashCode();
         Task<T> addTask = taskComplete(addTaskName, true, () -> addFunction.apply(id, request));
@@ -307,7 +307,7 @@ public class CrudCheckDataUtil {
     }
 
     /**
-     * 获取最终数据，如果发现query有返回数据，则抛出异常
+     * 获取最终数据，判断是抛出异常还是直接返回结果
      *
      * @param checkResult 检测结果
      * @param request     接口请求参数
@@ -316,13 +316,14 @@ public class CrudCheckDataUtil {
      * @return 数据库实体
      * @throws Exception 出现重复数据抛出的异常
      */
-    public static <T extends BaseEntity, R extends CheckRequest> T getResult4Update(CheckResult<T> checkResult, R request, Object id) throws Exception {
+    public static <T extends BaseEntity, R extends CheckRequest, I extends Number> T getResult4Update(CheckResult<T> checkResult, R request, I id) throws Exception {
         if (checkResult.getCheckInfo().getValue().equals(request)) {
             return checkResult.getTaskResult().result();
         }
         TaskResult<T> taskResult = checkResult.getTaskResult();
         if (taskResult.getOriginalTask().getTaskType().type().equals(AddCheckTaskType.QUERY.type())) {
             CheckInfo checkInfo = checkResult.getCheckInfo();
+            // 如果是有结果，判断数据的id，如果id一致直接返回，如果不一致表示数据冲突
             if (taskResult.hasResult()) {
                 T t = taskResult.result();
                 if (t.getId().toString().equals(id.toString())) {
