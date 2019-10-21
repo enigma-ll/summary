@@ -15,4 +15,5 @@ class CheckInfo<T> {
     private String name;
     private T value;
     private String attributeName;
+    private Checking.CheckType checkType;
 }

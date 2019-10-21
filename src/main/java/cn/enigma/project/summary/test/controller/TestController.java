@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -61,19 +60,13 @@ public class TestController {
 
     @HttpTrace
     @GetMapping("update")
-    public TestEntity update(@RequestParam Integer id) {
-        return testService.update(id);
+    public TestEntity update(Integer id, TestReq testReq) throws Exception {
+        return addCheckTest.updateTest(id, testReq);
     }
 
     @HttpTrace
     @GetMapping("add")
     public TestEntity add(TestReq testReq) throws Exception {
-        return addCheckTest.add(testReq);
-    }
-
-    @HttpTrace
-    @GetMapping("add/v1")
-    public TestEntity addV1(TestReq testReq) throws Exception {
-        return addCheckTest.add(testReq);
+        return addCheckTest.insert(testReq);
     }
 }

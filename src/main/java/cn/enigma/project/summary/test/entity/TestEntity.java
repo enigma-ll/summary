@@ -77,6 +77,6 @@ public class TestEntity extends BaseEntity {
     public String toString() {
         return "TestEntity{" +
                 "id=" + id +
-                '}';
+                '}' + super.toString();
     }
 }

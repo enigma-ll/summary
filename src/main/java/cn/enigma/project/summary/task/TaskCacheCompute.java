@@ -10,7 +10,7 @@ import java.util.concurrent.Future;
  * Modified By:
  * Description: 定义一个通用缓存接口
  */
-public interface TaskCompute<T> {
+public interface TaskCacheCompute<T> {
 
     /**
      * 计算任务，如果任务存在缓存，根据task的name和cover属性判断是否替换属性还是从缓存中直接读取任务

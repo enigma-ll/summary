@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
-public class RamCachedTaskCompute<T> implements TaskCompute<T> {
+public class TaskRamCacheCompute<T> implements TaskCacheCompute<T> {
 
     private static final long EXPIRE_UNLIMITED = 0L;
 

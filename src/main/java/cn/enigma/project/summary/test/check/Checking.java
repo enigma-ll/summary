@@ -22,4 +22,10 @@ public @interface Checking {
      * @return 属性对应的数据库实体名称
      */
     String tableColumn();
+
+    CheckType checkType();
+
+    public enum CheckType {
+        EXIST, NOT_EXIST, NONE;
+    }
 }

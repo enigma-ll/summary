@@ -17,7 +17,7 @@ class CacheResult<T> {
         if (hasException()) {
             throw this.exception;
         }
-        if (null == this.result) {
+        if (!hasResult()) {
             throw new NullPointerException(null);
         }
         return this.result;
