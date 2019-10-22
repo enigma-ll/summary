@@ -5,7 +5,11 @@
     <include resource="cn/enigma/project/common/log/file-appender.xml"/>
     <include resource="cn/enigma/project/common/log/http-trace.xml"/>
 
-    <root>
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE_INFO"/>
+        <appender-ref ref="FILE_DEBUG"/>
+        <appender-ref ref="FILE_ERROR"/>
+        <appender-ref ref="logstash-json"/>
     </root>
 </configuration>

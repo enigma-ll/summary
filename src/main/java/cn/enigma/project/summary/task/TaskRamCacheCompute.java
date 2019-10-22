@@ -56,7 +56,6 @@ public class TaskRamCacheCompute<T> implements TaskCacheCompute<T> {
      * @return 任务
      */
     private Task<T> handleTask(String key, Task<T> task, long expire) {
-        log.debug("[{}]开始处理任务：[{}]", key, task);
         Lock keyLock = getLock(key);
         keyLock.lock();
         Cache<T> cache;
@@ -81,7 +80,6 @@ public class TaskRamCacheCompute<T> implements TaskCacheCompute<T> {
                     return cache.getDataTask();
                 }
             }
-            log.debug("[{}]实际执行任务：[{}]", key, cache.getDataTask());
             return cache.getDataTask();
         } finally {
             keyLock.unlock();
@@ -144,7 +142,6 @@ public class TaskRamCacheCompute<T> implements TaskCacheCompute<T> {
             // 下面的逻辑其实相当于task的compare方法
             Task<T> targetTask = targetCache.getDataTask();
             Task<T> expireTask = expiredCache.getDataTask();
-            log.debug("[{}]清理过期缓存任务：[{}]，当前缓存任务：[{}]", key, expiredCache, targetTask);
             // 不同名任务不清除
             if (!targetTask.getName().equals(expireTask.getName())) {
                 return;
@@ -153,7 +150,6 @@ public class TaskRamCacheCompute<T> implements TaskCacheCompute<T> {
             if (!expireTask.isCoverOthers() && targetTask.isCoverOthers()) {
                 return;
             }
-            log.debug("[{}]清理过期缓存", key);
             taskCache.remove(key);
         } finally {
             lock.unlock();
