@@ -1,11 +1,11 @@
 package cn.enigma.project.summary.test.service;
 
 import cn.enigma.project.common.exception.GlobalException;
+import cn.enigma.project.common.task.TaskCacheCompute;
+import cn.enigma.project.common.task.TaskRamCacheCompute;
 import cn.enigma.project.common.util.SnowflakeIdWorker;
-import cn.enigma.project.summary.task.TaskRamCacheCompute;
-import cn.enigma.project.summary.task.TaskCacheCompute;
-import cn.enigma.project.summary.test.check.CrudCheckDataUtil;
 import cn.enigma.project.summary.test.check.CheckResult;
+import cn.enigma.project.summary.test.check.CrudCheckDataUtil;
 import cn.enigma.project.summary.test.controller.req.TestReq;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;

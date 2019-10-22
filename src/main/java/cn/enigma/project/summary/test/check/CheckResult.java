@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.test.check;
 
-import cn.enigma.project.summary.task.TaskResult;
+import cn.enigma.project.common.task.TaskResult;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

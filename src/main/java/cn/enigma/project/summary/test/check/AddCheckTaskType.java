@@ -1,6 +1,6 @@
 package cn.enigma.project.summary.test.check;
 
-import cn.enigma.project.summary.task.TaskType;
+import cn.enigma.project.common.task.TaskType;
 
 /**
  * @author luzh

@@ -1,11 +1,11 @@
 package cn.enigma.project.summary.test.check;
 
 import cn.enigma.project.common.exception.GlobalException;
+import cn.enigma.project.common.task.Task;
+import cn.enigma.project.common.task.TaskCacheCompute;
+import cn.enigma.project.common.task.TaskResult;
 import cn.enigma.project.jpa.entity.BaseEntity;
 import cn.enigma.project.jpa.query.partial.PartQuery;
-import cn.enigma.project.summary.task.Task;
-import cn.enigma.project.summary.task.TaskCacheCompute;
-import cn.enigma.project.summary.task.TaskResult;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.EntityManager;
