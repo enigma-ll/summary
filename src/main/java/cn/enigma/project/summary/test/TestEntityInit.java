@@ -1,11 +1,13 @@
 package cn.enigma.project.summary.test;
 
-import cn.enigma.project.common.startup.SystemInit;
+import cn.enigma.project.common.startup.StartUpRunner;
 import cn.enigma.project.common.util.SnowflakeIdWorker;
 import cn.enigma.project.summary.test.dao.TestRepository;
 import cn.enigma.project.summary.test.entity.TestEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.Executor;
 
 /**
  * @author luzh
@@ -15,12 +17,13 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class TestEntityInit extends SystemInit {
+public class TestEntityInit extends StartUpRunner {
 
     private TestRepository testRepository;
     private final SnowflakeIdWorker snowflakeIdWorker = SnowflakeIdWorker.getInstance(1L, 1L);
 
-    public TestEntityInit(TestRepository testRepository) {
+    public TestEntityInit(TestRepository testRepository, Executor executor) {
+        super(executor);
         this.testRepository = testRepository;
     }
 

@@ -57,6 +57,7 @@ dependencies {
     compile 'io.micrometer:micrometer-registry-prometheus:latest.release'
     compile group: 'cn.enigma.project', name: 'common', version: '0.0.1-SNAPSHOT'
     compile group: 'cn.enigma.project', name: 'common-jpa', version: '0.0.1-SNAPSHOT'
+    compile group: 'com.google.guava', name: 'guava'
 }
 
 dependencyManagement {
